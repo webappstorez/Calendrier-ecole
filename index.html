@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Calendrier école</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Calendrier">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#2f5d8a">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<style id="pageStyle">@page{size:A4 landscape;margin:0}</style>
+<style>
+:root{--acc:#2f5d8a;--acc2:#e8f0f8;--bg:#f4f5f7;--line:#d9dde3;--txt:#1d232b;--mut:#6b7480}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--txt);font-size:15px}
+button,select,input{font:inherit;color:inherit}
+button{cursor:pointer;border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 10px}
+button:hover{border-color:var(--acc)}
+button.pri{background:var(--acc);color:#fff;border-color:var(--acc)}
+select,input[type=text],input[type=time],input[type=number]{border:1px solid var(--line);border-radius:8px;padding:6px 8px;background:#fff;min-width:0}
+header{position:sticky;top:0;z-index:5;background:#fff;border-bottom:1px solid var(--line);padding:calc(10px + env(safe-area-inset-top)) calc(12px + env(safe-area-inset-right)) 10px calc(12px + env(safe-area-inset-left));display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+header h1{font-size:17px;margin:0 8px 0 0;color:var(--acc)}
+.grow{flex:1}
+main{padding:12px;max-width:1300px;margin:0 auto}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:10px}
+.bar small{color:var(--mut)}
+.banner{background:#fff7e0;border:1px solid #f0d58a;border-radius:10px;padding:10px;margin-bottom:10px;display:none;gap:8px;flex-wrap:wrap;align-items:center}
+.selbar{display:none;background:var(--acc2);border-color:#b9cde3}
+#days{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:8px}
+.wk{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:6px;padding:4px 2px;border-bottom:2px solid var(--acc);color:var(--acc);font-weight:600}
+.wk button{font-weight:400;font-size:14px}
+.day{background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px}
+.day.gr{background:#e7e9ec;border-color:#cdd1d6}
+.day.gr .dn{color:#5b636d}
+.tags{display:flex;gap:4px;margin-top:4px;flex-wrap:wrap}
+.tag{font-size:12px;padding:1px 7px;border-radius:10px;background:#d3d7dc;color:#333}
+.tag.fer{background:#f6d7d7;color:#8a1f1f}
+.tag.vac{background:#d6e6d2;color:#2d5a24}
+.day.today{border-color:var(--acc);box-shadow:0 0 0 1px var(--acc)}
+.day.sel{background:var(--acc2);border-color:#9dbbdb}
+.dh{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.ck{display:flex;align-items:center;gap:6px;cursor:pointer}
+.ck input{width:18px;height:18px}
+.dn b{font-size:17px}
+.tools{display:flex;gap:4px}
+.tools button{padding:3px 8px;font-size:14px}
+.acts{display:flex;flex-direction:column;gap:6px;margin-top:6px}
+.acts:empty{margin:0}
+.act{display:grid;grid-template-columns:1fr auto 1fr 34px;gap:4px;align-items:center;border-top:1px dashed var(--line);padding-top:6px}
+.act span{color:var(--mut)}
+.act input[type=text]{grid-column:1/4}
+.act button{padding:3px 0;color:#b33}
+section.prev{margin-top:16px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px}
+section.prev h2{font-size:16px;margin:0 0 8px}
+#prevBox{overflow:hidden;margin-top:10px;background:#e9ebee;padding:0;border-radius:4px}
+#sheet{transform-origin:top left;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.25)}
+#toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:#222;color:#fff;padding:9px 14px;border-radius:20px;opacity:0;transition:.3s;pointer-events:none;z-index:9;font-size:14px;max-width:90vw;text-align:center}
+#toast.on{opacity:1}
+
+/* ----- Zone d'impression ----- */
+#sheet.four{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr}
+.pa{display:flex;flex-direction:column;overflow:hidden;font-family:Arial,Helvetica,sans-serif;color:#000;line-height:1.15;background:#fff;outline:.15mm solid #bbb;outline-offset:-.15mm}
+.pt{font-weight:700;font-size:1.35em;text-align:center;padding:.15em 0 .2em;border-bottom:.3mm solid #000}
+.pb{flex:1;min-height:0;overflow:hidden}
+.g{display:grid;height:100%;align-content:stretch}
+.gh{font-weight:700;text-align:center;background:#e6e6e6;border-right:.15mm solid #888;border-bottom:.15mm solid #888;padding:.1em 0}
+.c{border-right:.15mm solid #888;border-bottom:.15mm solid #888;padding:.12em .2em;overflow-wrap:anywhere;min-width:0}
+.gh:nth-child(7n),.c:nth-child(7n){border-right:0}
+.c.w,.gh.w,.li.w{background:#dcdcdc}
+.c .f{font-style:italic;font-size:.85em}
+.c.x{background:#fafafa}
+.c .n{font-weight:700;font-size:1.1em}
+.l{margin-top:.08em}
+.l .h{font-weight:700}
+.ls{height:100%;column-gap:.6em;column-rule:.15mm solid #aaa;column-fill:balance;padding:.2em .25em}
+.li{break-inside:avoid;padding:.1em 0 .15em;border-bottom:.15mm solid #ccc}
+.li>b{display:block}
+
+@media print{
+  body{background:#fff;margin:0}
+  .noprint{display:none!important}
+  main{padding:0;margin:0;max-width:none}
+  section.prev{border:0;padding:0;margin:0;border-radius:0}
+  #prevBox{height:auto!important;background:none;margin:0;overflow:visible}
+  #sheet{transform:none!important;box-shadow:none;position:absolute;top:0;left:0}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+<header class="noprint">
+  <h1>📅 Calendrier école</h1>
+  <button id="prevM" title="Mois précédent">‹</button>
+  <select id="mois"></select>
+  <select id="annee"></select>
+  <button id="nextM" title="Mois suivant">›</button>
+  <button id="todayB">Aujourd'hui</button>
+  <span class="grow"></span>
+  <button class="pri" id="printTop">🖨️ Imprimer</button>
+</header>
+
+<main>
+  <div class="banner noprint" id="banner">
+    <span>Ce mois est vide. Pré-remplir à partir de <b id="bPrev"></b> ?</span>
+    <button class="pri" id="bAll">Tout le mois</button>
+    <button id="bWork">Lun–Ven seulement</button>
+    <button id="bPick">Choisir les jours</button>
+    <button id="bNo">Non merci</button>
+  </div>
+
+  <div class="bar noprint">
+    <button id="fillMonth">↻ Pré-remplir le mois depuis <span id="lblPrev"></span></button>
+    <label><input type="checkbox" id="ow"> Remplacer les jours déjà remplis</label>
+    <label><input type="checkbox" id="skipOff" checked> Ignorer fériés et vacances</label>
+    <span class="grow"></span>
+    <small>Sélection rapide :</small>
+    <button id="sWork">Lun–Ven</button>
+    <button id="sAll">Tout</button>
+    <button id="sNone">Aucun</button>
+    <div style="width:100%"><small>Chaque jour reprend les activités du même jour de la semaine du mois précédent (1er lundi → 1er lundi, etc.). Boutons par jour : 🏖 = marquer le jour sans classe (🏫 pour annuler) · ⇐ = comme le jour précédent · ↻ = reprendre depuis le mois précédent · ⇉ = copier sur tous les mêmes jours du mois.<br>Grisés : mercredis, week-ends, jours fériés et vacances scolaires zone C (Paris, Créteil, Versailles), mises à jour automatiquement depuis l'API officielle de l'Éducation nationale.</small></div>
+  </div>
+
+  <div class="bar selbar noprint" id="selbar">
+    <b id="selCount"></b>
+    <button class="pri" id="fillSel">↻ Pré-remplir la sélection</button>
+    <button id="clearSel">🗑 Vider la sélection</button>
+  </div>
+
+  <div id="days" class="noprint"></div>
+  <datalist id="sugg"></datalist>
+
+  <section class="prev">
+    <div class="noprint">
+      <h2>Impression (¼ de feuille A4)</h2>
+      <div class="bar" style="margin:0">
+        <label>Titre <input type="text" id="sTitle" placeholder="ex. Prénom / Classe" style="width:150px"></label>
+        <label>Format <select id="sOrient"><option value="landscape">Paysage 148×105 mm</option><option value="portrait">Portrait 105×148 mm</option></select></label>
+        <label>Mise en page <select id="sLayout"><option value="grid">Grille calendrier</option><option value="list">Liste (jours avec activités)</option></select></label>
+        <label>Exemplaires <select id="sCopies"><option value="1">1 (coin haut-gauche)</option><option value="4">4 sur la feuille (à découper)</option></select></label>
+        <label>Marge de sécurité <input type="number" id="sSafety" min="0" max="5" step="0.5" style="width:60px"> mm</label>
+        <button class="pri" id="printB">🖨️ Imprimer</button>
+        <button id="pdfB">📄 PDF / Partager</button>
+      </div>
+      <small style="color:var(--mut)">La taille du texte s'ajuste automatiquement pour remplir exactement le ¼ de page. Sur ordinateur : choisir A4, échelle 100 % et marges « Aucune ». Sur iPhone : « Imprimer » crée un PDF au bon format puis ouvre le menu Partager → Imprimer.</small>
+    </div>
+    <div id="prevBox"><div id="sheet"></div></div>
+  </section>
+
+  <div class="bar noprint" style="margin-top:12px">
+    <small>Les saisies sont mémorisées dans ce navigateur.<br><span id="vacStat"></span></small>
+    <button id="vacMaj">🔄 Actualiser les vacances</button>
+    <span class="grow"></span>
+    <button id="exp">⬇ Sauvegarder (fichier)</button>
+    <button id="impB">⬆ Restaurer</button>
+    <input type="file" id="imp" accept=".json,application/json" hidden>
+  </div>
+</main>
+<div id="toast" class="noprint"></div>
+
+<script>
+const $=s=>document.querySelector(s);
+const KEY='calendrierEcole_v1';
+const MOIS=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+const JL=['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+const JC=['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
+
+let store={days:{},settings:{title:'',orient:'landscape',layout:'grid',copies:'1',safety:0},bannerOff:{},off:{}};
+try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&s.days){store.days=s.days;Object.assign(store.settings,s.settings||{});store.bannerOff=s.bannerOff||{};store.off=s.off||{}}}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(store))}catch(e){toast('⚠️ Sauvegarde impossible dans ce navigateur')}}
+
+const now=new Date();let Y=now.getFullYear(),M=now.getMonth();const sel=new Set();
+const pad=n=>String(n).padStart(2,'0');
+const K=(y,m,d)=>`${y}-${pad(m+1)}-${pad(d)}`;
+const nDays=(y,m)=>new Date(y,m+1,0).getDate();
+const wd=(y,m,d)=>new Date(y,m,d).getDay();
+const prevYM=(y,m)=>m===0?[y-1,11]:[y,m-1];
+const filled=a=>(a.text||'').trim()||a.start||a.end;
+const acts=k=>(store.days[k]||[]).filter(filled);
+const clone=a=>a.map(x=>({start:x.start||'',end:x.end||'',text:x.text||''}));
+const sortA=a=>a.slice().sort((x,y)=>(x.start||'99').localeCompare(y.start||'99'));
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmtT=t=>t?t.replace(/^0/,'').replace(':','h').replace(/h00$/,'h'):'';
+const times=a=>a.start&&a.end?fmtT(a.start)+'–'+fmtT(a.end):fmtT(a.start||a.end);
+/* --- Vacances scolaires zone C (Paris, Créteil, Versailles) : jours sans classe, bornes incluses --- */
+const VAC_C=[
+ ['2025-10-18','2025-11-02'],['2025-12-20','2026-01-04'],['2026-02-21','2026-03-08'],['2026-04-18','2026-05-03'],['2026-05-14','2026-05-17'],['2026-07-04','2026-08-31'],
+ ['2026-10-17','2026-11-01'],['2026-12-19','2027-01-03'],['2027-02-06','2027-02-21'],['2027-04-03','2027-04-18'],['2027-05-06','2027-05-09'],['2027-07-03','2027-09-01'],
+ ['2027-10-23','2027-11-07'],['2027-12-18','2028-01-02'],['2028-02-12','2028-02-27'],['2028-04-15','2028-05-01'],['2028-05-25','2028-05-28'],['2028-07-05','2028-08-31']
+];
+/* --- Mise à jour automatique depuis l'API officielle (data.education.gouv.fr) --- */
+const API='https://data.education.gouv.fr/api/explore/v2.1/catalog/datasets/fr-en-calendrier-scolaire/records?where='+encodeURIComponent('zones="Zone C" and location="Paris"')+'&order_by=start_date%20desc&limit=100';
+const anneeSco=(y,m)=>m>=8?`${y}-${y+1}`:`${y-1}-${y}`;
+function isVac(y,m,k){
+  const A=store.vacApi;
+  if(A&&A.years&&A.years.includes(anneeSco(y,m)))return A.periods.some(([a,b])=>k>=a&&k<=b);
+  return VAC_C.some(([a,b])=>k>=a&&k<=b);
+}
+const parisDay=iso=>new Intl.DateTimeFormat('fr-CA',{timeZone:'Europe/Paris',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(iso));
+function veille(s){const [y,m,d]=s.split('-').map(Number),t=new Date(y,m-1,d-1);return K(t.getFullYear(),t.getMonth(),t.getDate())}
+async function majVacances(force){
+  const A=store.vacApi;
+  if(!force&&A&&Date.now()-A.fetched<7*864e5){statutVac();return}
+  $('#vacStat').textContent='Vacances : mise à jour en cours…';
+  try{
+    const r=await fetch(API);if(!r.ok)throw new Error(r.status);
+    const j=await r.json(),rec=(j.results||[]).filter(x=>x.start_date&&x.end_date&&!/enseignant/i.test(x.population||''));
+    if(!rec.length)throw new Error('vide');
+    const periods=rec.map(x=>[parisDay(x.start_date),veille(parisDay(x.end_date))]);
+    const years=[...new Set(rec.map(x=>x.annee_scolaire).filter(Boolean))];
+    store.vacApi={fetched:Date.now(),periods,years};save();render();statutVac();
+    if(force)toast('Vacances scolaires mises à jour');
+  }catch(e){statutVac(true)}
+}
+function statutVac(err){
+  const A=store.vacApi,el=$('#vacStat');
+  if(A)el.textContent=`Vacances zone C : données officielles du ${new Date(A.fetched).toLocaleDateString('fr-FR')} (années ${A.years.slice().sort().join(', ')})`+(err?' · actualisation impossible (hors ligne ?)':'');
+  else el.textContent='Vacances zone C : dates intégrées jusqu\'à l\'été 2028'+(err?' · API injoignable (hors ligne ?)':'');
+}
+function paques(y){const a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),mo=Math.floor((h+l-7*m+114)/31),da=((h+l-7*m+114)%31)+1;return new Date(y,mo-1,da)}
+const ferCache={};
+function feries(y){
+  if(ferCache[y])return ferCache[y];
+  const r={},p=paques(y),add=(dt,n)=>r[K(dt.getFullYear(),dt.getMonth(),dt.getDate())]=n,pl=n=>new Date(y,p.getMonth(),p.getDate()+n);
+  [[0,1,'Jour de l\'an'],[4,1,'Fête du Travail'],[4,8,'Victoire 1945'],[6,14,'Fête nationale'],[7,15,'Assomption'],[10,1,'Toussaint'],[10,11,'Armistice'],[11,25,'Noël']].forEach(([m,d,n])=>add(new Date(y,m,d),n));
+  add(pl(1),'Lundi de Pâques');add(pl(39),'Ascension');add(pl(50),'Lundi de Pentecôte');
+  return ferCache[y]=r;
+}
+function info(y,m,d){
+  const k=K(y,m,d),w=wd(y,m,d),fer=feries(y)[k]||null;
+  const auto=isVac(y,m,k);
+  const o=(store.off||{})[k],vac=o===1?true:o===0?false:auto;
+  return {fer,vac,auto,w,gris:w===0||w===3||w===6||!!fer||vac};
+}
+const monthHas=(y,m)=>{for(let d=1;d<=nDays(y,m);d++)if(acts(K(y,m,d)).length)return true;return false};
+function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('on');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('on'),2600)}
+
+/* --- Sélecteurs mois / année --- */
+$('#mois').innerHTML=MOIS.map((m,i)=>`<option value="${i}">${m}</option>`).join('');
+function ensureYear(){const s=$('#annee');let h='';for(let y=Math.min(Y,now.getFullYear())-5;y<=Math.max(Y,now.getFullYear())+5;y++)h+=`<option>${y}</option>`;s.innerHTML=h;s.value=Y}
+$('#mois').onchange=e=>{M=+e.target.value;sel.clear();render()};
+$('#annee').onchange=e=>{Y=+e.target.value;sel.clear();render()};
+$('#prevM').onclick=()=>{[Y,M]=prevYM(Y,M);sel.clear();render()};
+$('#nextM').onclick=()=>{if(M===11){M=0;Y++}else M++;sel.clear();render()};
+$('#todayB').onclick=()=>{Y=now.getFullYear();M=now.getMonth();sel.clear();render()};
+
+/* --- Rendu des jours --- */
+function rowHTML(a,i){return `<div class="act" data-i="${i}"><input type="time" data-f="start" value="${a.start||''}"><span>→</span><input type="time" data-f="end" value="${a.end||''}"><button data-act="del" title="Supprimer">✕</button><input type="text" data-f="text" list="sugg" placeholder="Activité…" value="${esc(a.text||'')}"></div>`}
+function dayHTML(d){
+  const k=K(Y,M,d),list=store.days[k]||[],I=info(Y,M,d),w=I.w;
+  const cls=(I.gris?' gr':'')+(k===K(now.getFullYear(),now.getMonth(),now.getDate())?' today':'')+(sel.has(d)?' sel':'');
+  const tag=(I.fer?`<span class="tag fer">${I.fer}</span>`:'')+(I.vac?'<span class="tag vac">Vacances</span>':'');
+  return `<div class="day${cls}" data-d="${d}"><div class="dh"><label class="ck"><input type="checkbox" data-act="sel"${sel.has(d)?' checked':''}><span class="dn">${JL[w]} <b>${d}</b></span></label><span class="tools"><button data-act="off" title="${I.vac?'Retirer le marquage vacances':'Marquer ce jour en vacances / sans classe'}">${I.vac?'🏫':'🏖'}</button><button data-act="veille" title="Remplir comme le jour précédent">⇐</button><button data-act="prev" title="Reprendre le même jour du mois précédent">↻</button><button data-act="dup" title="Copier sur tous les ${JL[w].toLowerCase()}s du mois">⇉</button><button data-act="add">+ Activité</button></span></div>${tag?`<div class="tags">${tag}</div>`:''}<div class="acts">${list.map(rowHTML).join('')}</div></div>`;
+}
+function renderDay(d){const el=document.querySelector(`.day[data-d="${d}"]`);if(el)el.outerHTML=dayHTML(d)}
+function render(){
+  $('#mois').value=M;ensureYear();
+  let h='';for(let d=1;d<=nDays(Y,M);d++){if(d===1||wd(Y,M,d)===1){let f=d;while(f<nDays(Y,M)&&wd(Y,M,f)!==0)f++;h+=`<div class="wk"><span>Semaine du ${d} au ${f} ${MOIS[M].toLowerCase()}</span><button data-wk="${d}" title="Chaque jour reprend les activités du même jour de la semaine précédente">⟳ Comme la semaine précédente</button></div>`}h+=dayHTML(d)}
+  $('#days').innerHTML=h;
+  const [py,pm]=prevYM(Y,M);$('#lblPrev').textContent=`${MOIS[pm]} ${py}`;
+  updSel();banner();refreshSugg();preview();
+}
+function banner(){
+  const [py,pm]=prevYM(Y,M),b=$('#banner'),key=K(Y,M,1);
+  const show=!monthHas(Y,M)&&monthHas(py,pm)&&!store.bannerOff[key];
+  b.style.display=show?'flex':'none';$('#bPrev').textContent=`${MOIS[pm]} ${py}`;
+}
+function updSel(){$('#selbar').style.display=sel.size?'flex':'none';$('#selCount').textContent=`${sel.size} jour(s) sélectionné(s)`}
+
+/* --- Suggestions de texte --- */
+function refreshSugg(){
+  const f={};for(const k in store.days)for(const a of store.days[k]){const t=(a.text||'').trim();if(t)f[t]=(f[t]||0)+1}
+  $('#sugg').innerHTML=Object.keys(f).sort((a,b)=>f[b]-f[a]).slice(0,200).map(t=>`<option value="${esc(t)}">`).join('');
+}
+function autoTimes(inp){
+  const row=inp.closest('.act'),d=+inp.closest('.day').dataset.d,i=+row.dataset.i,a=store.days[K(Y,M,d)][i];
+  const t=(a.text||'').trim().toLowerCase();if(!t||a.start||a.end)return;
+  const ks=Object.keys(store.days).sort().reverse();
+  for(const k of ks)for(const b of store.days[k])if(b!==a&&(b.text||'').trim().toLowerCase()===t&&(b.start||b.end)){
+    a.start=b.start;a.end=b.end;row.querySelector('[data-f=start]').value=a.start;row.querySelector('[data-f=end]').value=a.end;save();schedPreview();toast('Horaires repris de la dernière saisie');return;
+  }
+}
+
+/* --- Source de pré-remplissage : même jour de semaine du mois précédent --- */
+const addJ=(y,m,d,n)=>{const t=new Date(y,m,d+n);return [t.getFullYear(),t.getMonth(),t.getDate()]};
+function jourPrecedent(y,m,d){for(let i=1;i<=7;i++){const [a,b,c]=addJ(y,m,d,-i),L=acts(K(a,b,c));if(L.length)return {L,lbl:`${JL[wd(a,b,c)].toLowerCase()} ${c}`}}return null}
+function semainePrecedente(y,m,d){for(let s=1;s<=5;s++){const [a,b,c]=addJ(y,m,d,-7*s),L=acts(K(a,b,c));if(L.length)return L}return null}
+function sourceFor(y,m,d){
+  const [py,pm]=prevYM(y,m),w=wd(y,m,d),k=Math.ceil(d/7),arr=[];
+  for(let dd=1;dd<=nDays(py,pm);dd++)if(wd(py,pm,dd)===w)arr.push(dd);
+  const order=[arr[k-1],...arr.slice().reverse()].filter(Boolean);
+  for(const dd of order){const a=acts(K(py,pm,dd));if(a.length)return a}
+  return null;
+}
+function prefill(days){
+  const ow=$('#ow').checked,skip=$('#skipOff').checked;let c=0,s=0;
+  for(const d of days){const k=K(Y,M,d);if(skip){const I=info(Y,M,d);if(I.fer||I.vac)continue}if(!ow&&acts(k).length){s++;continue}const src=sourceFor(Y,M,d);if(src){store.days[k]=clone(src);c++}}
+  save();sel.clear();render();toast(`${c} jour(s) pré-rempli(s)`+(s?` · ${s} déjà rempli(s) conservé(s)`:''));
+}
+const allDays=()=>Array.from({length:nDays(Y,M)},(_,i)=>i+1);
+const workDays=()=>allDays().filter(d=>{const w=wd(Y,M,d);return w>0&&w<6});
+
+/* --- Événements sur les jours --- */
+const D=$('#days');
+D.addEventListener('input',e=>{const t=e.target;if(!t.dataset.f)return;const d=+t.closest('.day').dataset.d,i=+t.closest('.act').dataset.i;store.days[K(Y,M,d)][i][t.dataset.f]=t.value;save();schedPreview()});
+D.addEventListener('change',e=>{
+  const t=e.target;
+  if(t.dataset.f==='text'){autoTimes(t);refreshSugg()}
+  if(t.dataset.act==='sel'){const day=t.closest('.day'),d=+day.dataset.d;t.checked?sel.add(d):sel.delete(d);day.classList.toggle('sel',t.checked);updSel()}
+});
+D.addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.wk){
+    const d0=+b.dataset.wk,ow=$('#ow').checked,skip=$('#skipOff').checked;let c=0,s=0;
+    for(let d=d0;d<=nDays(Y,M);d++){
+      if(d>d0&&wd(Y,M,d)===1)break;
+      const k=K(Y,M,d),I=info(Y,M,d);
+      if(skip&&(I.fer||I.vac))continue;
+      if(!ow&&acts(k).length){s++;continue}
+      const src=semainePrecedente(Y,M,d);if(src){store.days[k]=clone(src);c++}
+    }
+    save();render();toast(c?`${c} jour(s) remplis comme la semaine précédente`+(s?` · ${s} déjà rempli(s) conservé(s)`:''):'Rien à copier'+(s?` (${s} jour(s) déjà rempli(s) — cocher « Remplacer »)`:''));
+    return;
+  }
+  const d=+b.closest('.day').dataset.d,k=K(Y,M,d),act=b.dataset.act,w=wd(Y,M,d);
+  if(act==='off'){
+    const I=info(Y,M,d),nv=!I.vac;
+    if(nv===I.auto)delete store.off[k];else store.off[k]=nv?1:0;
+    save();renderDay(d);schedPreview();return;
+  }
+  if(act==='veille'){
+    const src=jourPrecedent(Y,M,d);if(!src){toast('Aucun jour rempli dans les 7 jours précédents');return}
+    if(acts(k).length&&!confirm('Remplacer les activités de ce jour ?'))return;
+    store.days[k]=clone(src.L);save();renderDay(d);schedPreview();toast(`Copié depuis ${src.lbl}`);return;
+  }
+  if(act==='add'){
+    const l=store.days[k]||(store.days[k]=[]),last=sortA(l.filter(x=>x.end)).pop();
+    l.push({start:last?last.end:'',end:'',text:''});save();renderDay(d);
+    const rows=document.querySelectorAll(`.day[data-d="${d}"] .act`);rows[rows.length-1].querySelector('[data-f=text]').focus();
+  }else if(act==='del'){
+    const i=+b.closest('.act').dataset.i;store.days[k].splice(i,1);if(!store.days[k].length)delete store.days[k];save();renderDay(d);schedPreview();refreshSugg();
+  }else if(act==='prev'){
+    const src=sourceFor(Y,M,d);if(!src){toast(`Aucun ${JL[w].toLowerCase()} rempli le mois précédent`);return}
+    if(acts(k).length&&!confirm('Remplacer les activités de ce jour ?'))return;
+    store.days[k]=clone(src);save();renderDay(d);schedPreview();toast('Jour pré-rempli');
+  }else if(act==='dup'){
+    const src=acts(k);if(!src.length){toast('Ce jour est vide');return}
+    const tg=allDays().filter(x=>x!==d&&wd(Y,M,x)===w);
+    if(tg.some(x=>acts(K(Y,M,x)).length)&&!confirm(`Remplacer les autres ${JL[w].toLowerCase()}s déjà remplis ?`))return;
+    tg.forEach(x=>store.days[K(Y,M,x)]=clone(src));save();render();toast(`Copié sur ${tg.length} ${JL[w].toLowerCase()}(s)`);
+  }
+});
+
+/* --- Barres d'outils --- */
+$('#fillMonth').onclick=()=>prefill(allDays());
+$('#fillSel').onclick=()=>prefill([...sel]);
+$('#clearSel').onclick=()=>{if(!confirm(`Vider ${sel.size} jour(s) ?`))return;sel.forEach(d=>delete store.days[K(Y,M,d)]);save();sel.clear();render()};
+$('#sWork').onclick=()=>{sel.clear();workDays().forEach(d=>sel.add(d));render()};
+$('#sAll').onclick=()=>{allDays().forEach(d=>sel.add(d));render()};
+$('#sNone').onclick=()=>{sel.clear();render()};
+$('#bAll').onclick=()=>prefill(allDays());
+$('#bWork').onclick=()=>prefill(workDays());
+$('#bPick').onclick=()=>{$('#banner').style.display='none';toast('Cochez les jours, puis « Pré-remplir la sélection »')};
+$('#bNo').onclick=()=>{store.bannerOff[K(Y,M,1)]=1;save();banner()};
+
+/* --- Réglages impression --- */
+const S=store.settings;
+$('#sTitle').value=S.title;$('#sOrient').value=S.orient;$('#sLayout').value=S.layout;$('#sCopies').value=S.copies;$('#sSafety').value=S.safety;
+[['#sTitle','title'],['#sOrient','orient'],['#sLayout','layout'],['#sCopies','copies'],['#sSafety','safety']].forEach(([id,f])=>$(id).addEventListener('input',e=>{S[f]=e.target.value;save();schedPreview()}));
+
+/* --- Aperçu + impression --- */
+let pt;function schedPreview(){clearTimeout(pt);pt=setTimeout(preview,250)}
+function buildArea(aw,ah,land){
+  const a=document.createElement('div');a.className='pa';
+  a.style.width=aw+'mm';a.style.height=ah+'mm';a.style.padding=(+S.safety||0)+'mm';
+  const n=nDays(Y,M),title=`${MOIS[M]} ${Y}`+(S.title.trim()?` — ${esc(S.title.trim())}`:'');
+  const line=x=>`<div class="l"><span class="h">${times(x)}</span> ${esc(x.text||'')}</div>`;
+  let body='';
+  if(S.layout==='grid'){
+    const off=(wd(Y,M,1)+6)%7,rows=Math.ceil((off+n)/7);
+    let weAct=false;for(let d=1;d<=n;d++){const w=wd(Y,M,d);if((w===0||w===6)&&acts(K(Y,M,d)).length)weAct=true}
+    body=`<div class="g" style="grid-template-columns:${weAct?'repeat(7,1fr)':'repeat(5,1fr) .5fr .5fr'};grid-template-rows:auto repeat(${rows},auto)">`+JC.map((j,i)=>`<div class="gh${i>4||i===2?' w':''}">${j}</div>`).join('');
+    for(let i=0;i<rows*7;i++){
+      const d=i-off+1,col=i%7;
+      if(d<1||d>n){body+=`<div class="c x${col>4||col===2?' w':''}"></div>`;continue}
+      const I=info(Y,M,d);
+      body+=`<div class="c${I.gris?' w':''}"><div class="n">${d}</div>${I.fer?`<div class="f">${I.fer}</div>`:''}${sortA(acts(K(Y,M,d))).map(line).join('')}</div>`;
+    }
+    body+='</div>';
+  }else{
+    let it='';for(let d=1;d<=n;d++){const L=sortA(acts(K(Y,M,d)));if(L.length){const I=info(Y,M,d);it+=`<div class="li${I.gris?' w':''}"><b>${JL[wd(Y,M,d)]} ${d}${I.fer?` · <i>${I.fer}</i>`:''}</b>${L.map(line).join('')}</div>`}}
+    body=`<div class="ls" style="column-count:${land?3:2}">${it||'<i>Aucune activité saisie</i>'}</div>`;
+  }
+  a.innerHTML=`<div class="pt">${title}</div><div class="pb">${body}</div>`;
+  return a;
+}
+function fit(a){
+  const pb=a.querySelector('.pb');let lo=3,hi=10;
+  const ok=()=>pb.scrollHeight<=pb.clientHeight+1&&pb.scrollWidth<=pb.clientWidth+1;
+  for(let i=0;i<14;i++){const m=(lo+hi)/2;a.style.fontSize=m+'pt';ok()?lo=m:hi=m}
+  a.style.fontSize=lo+'pt';
+}
+function preview(){
+  const land=S.orient==='landscape',aw=land?148.5:105,ah=land?105:148.5,four=S.copies==='4';
+  $('#pageStyle').textContent=`@page{size:A4 ${land?'landscape':'portrait'};margin:0}`;
+  const sh=$('#sheet');sh.className=four?'four':'';
+  sh.style.width=(four?aw*2:aw)+'mm';sh.style.height=(four?ah*2:ah)+'mm';sh.innerHTML='';
+  const a=buildArea(aw,ah,land);sh.appendChild(a);fit(a);
+  if(four)for(let i=0;i<3;i++)sh.appendChild(a.cloneNode(true));
+  scalePrev();
+}
+function scalePrev(){const sh=$('#sheet'),box=$('#prevBox');sh.style.transform='none';const w=sh.offsetWidth,h=sh.offsetHeight,s=Math.min(1,box.clientWidth/w);sh.style.transform=`scale(${s})`;box.style.height=h*s+'px'}
+window.addEventListener('resize',scalePrev);
+window.addEventListener('beforeprint',preview);
+/* --- PDF (exact ¼ A4) : dessin du rendu sur un canevas puis PDF minimal --- */
+function capture(){
+  preview();
+  const sh=$('#sheet'),old=sh.style.transform;sh.style.transform='none';
+  const R=sh.getBoundingClientRect(),wmm=parseFloat(sh.style.width),hmm=parseFloat(sh.style.height);
+  const W=Math.round(wmm/25.4*300),H=Math.round(hmm/25.4*300),k=W/R.width;
+  const c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');
+  g.fillStyle='#fff';g.fillRect(0,0,W,H);
+  sh.querySelectorAll('*').forEach(el=>{
+    const cs=getComputedStyle(el),r=el.getBoundingClientRect(),x=(r.left-R.left)*k,y=(r.top-R.top)*k,w=r.width*k,h=r.height*k;
+    if(!/rgba\(0, 0, 0, 0\)|transparent/.test(cs.backgroundColor)){g.fillStyle=cs.backgroundColor;g.fillRect(x,y,w,h)}
+    for(const s of ['Top','Bottom','Left','Right']){
+      const bw=parseFloat(cs['border'+s+'Width']);if(!(bw>0)||cs['border'+s+'Style']==='none')continue;
+      const t=Math.max(1,bw*k);g.fillStyle=cs['border'+s+'Color'];
+      if(s==='Top')g.fillRect(x,y,w,t);else if(s==='Bottom')g.fillRect(x,y+h-t,w,t);else if(s==='Left')g.fillRect(x,y,t,h);else g.fillRect(x+w-t,y,t,h);
+    }
+    if(el.classList.contains('pa')){g.strokeStyle='#bbb';g.lineWidth=Math.max(1,.15/25.4*300);g.strokeRect(x+g.lineWidth/2,y+g.lineWidth/2,w-g.lineWidth,h-g.lineWidth)}
+  });
+  const tw=document.createTreeWalker(sh,NodeFilter.SHOW_TEXT);let n;
+  while(n=tw.nextNode()){
+    const cs=getComputedStyle(n.parentElement);
+    g.font=`${cs.fontStyle} ${cs.fontWeight} ${parseFloat(cs.fontSize)*k}px Arial, Helvetica, sans-serif`;g.fillStyle=cs.color;g.textBaseline='middle';
+    const re=/\S+/g,txt=n.textContent;let m;
+    while(m=re.exec(txt)){
+      const rg=document.createRange();rg.setStart(n,m.index);rg.setEnd(n,m.index+m[0].length);
+      const rs=rg.getClientRects();
+      if(rs.length===1){const q=rs[0];g.fillText(m[0],(q.left-R.left)*k,(q.top-R.top+q.height/2)*k)}
+      else for(let i=0;i<m[0].length;i++){rg.setStart(n,m.index+i);rg.setEnd(n,m.index+i+1);const q=rg.getClientRects()[0];if(q)g.fillText(m[0][i],(q.left-R.left)*k,(q.top-R.top+q.height/2)*k)}
+    }
+  }
+  sh.style.transform=old;
+  return {c,wmm,hmm};
+}
+function makePDF(){
+  const {c,wmm,hmm}=capture(),land=S.orient==='landscape';
+  const b64=c.toDataURL('image/jpeg',.92).split(',')[1],bin=atob(b64),jpg=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)jpg[i]=bin.charCodeAt(i);
+  const pw=land?841.89:595.28,ph=land?595.28:841.89,pt=v=>(v*72/25.4).toFixed(2),dw=pt(wmm),dh=pt(hmm);
+  const enc=s=>new TextEncoder().encode(s),parts=[],offs=[];let len=0;
+  const push=b=>{parts.push(b);len+=b.length};
+  const obj=(i,s,data)=>{offs[i]=len;push(enc(`${i} 0 obj\n${s}`));if(data){push(data);push(enc('\nendstream'))}push(enc('\nendobj\n'))};
+  push(enc('%PDF-1.4\n'));
+  obj(1,'<< /Type /Catalog /Pages 2 0 R >>');
+  obj(2,'<< /Type /Pages /Kids [3 0 R] /Count 1 >>');
+  obj(3,`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pw} ${ph}] /Resources << /XObject << /Im0 4 0 R >> >> /Contents 5 0 R >>`);
+  obj(4,`<< /Type /XObject /Subtype /Image /Width ${c.width} /Height ${c.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${jpg.length} >>\nstream\n`,jpg);
+  const cnt=`q ${dw} 0 0 ${dh} 0 ${(ph-dh).toFixed(2)} cm /Im0 Do Q`;
+  obj(5,`<< /Length ${cnt.length} >>\nstream\n`,enc(cnt));
+  const xref=len;let x='xref\n0 6\n0000000000 65535 f \n';for(let i=1;i<=5;i++)x+=String(offs[i]).padStart(10,'0')+' 00000 n \n';
+  push(enc(x+`trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`));
+  return new Blob(parts,{type:'application/pdf'});
+}
+function pdfAction(){
+  try{
+    const blob=makePDF(),name=`calendrier-ecole-${MOIS[M].toLowerCase()}-${Y}.pdf`;
+    const dl=()=>{const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),8000)};
+    let file=null;try{file=new File([blob],name,{type:'application/pdf'})}catch(e){}
+    if(file&&navigator.canShare&&navigator.canShare({files:[file]})){
+      navigator.share({files:[file],title:name}).catch(e=>{if(e.name!=='AbortError')dl()});
+    }else dl();
+  }catch(e){toast('Impossible de créer le PDF : '+e.message)}
+}
+const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+const doPrint=()=>{
+  if(isIOS||navigator.standalone){pdfAction();return}
+  preview();
+  try{window.print()}catch(e){pdfAction()}
+};
+$('#printB').onclick=doPrint;$('#printTop').onclick=doPrint;$('#pdfB').onclick=pdfAction;
+
+/* --- Sauvegarde / restauration fichier --- */
+$('#exp').onclick=()=>{const u=URL.createObjectURL(new Blob([JSON.stringify(store,null,1)],{type:'application/json'}));const l=document.createElement('a');l.href=u;l.download='calendrier-ecole-sauvegarde.json';l.click();setTimeout(()=>URL.revokeObjectURL(u),1000)};
+$('#impB').onclick=()=>$('#imp').click();
+$('#imp').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const s=JSON.parse(r.result);if(!s.days)throw 0;Object.assign(store.days,s.days);save();render();toast('Données restaurées')}catch(x){toast('Fichier invalide')}};r.readAsText(f);e.target.value=''};
+
+render();
+statutVac();
+$('#vacMaj').onclick=()=>majVacances(true);
+majVacances(false);
+</script>
+</body>
+</html>
